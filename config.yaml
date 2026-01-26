@@ -1,0 +1,27 @@
+roi:
+  left: 100
+  top: 100
+  width: 400
+  height: 300
+
+template_path: "assets/template.png"
+
+matching:
+  grayscale: true
+  method: "TM_CCOEFF_NORMED"
+  threshold: 0.90
+
+runtime:
+  interval_sec: 0.30
+  debounce_count: 3
+  cooldown_sec: 20
+
+notify:
+  use_toast: true
+  beep_fallback: true
+  title: "Watcher Alert"
+
+debug:
+  enabled: false
+  show_match_box: true
+  print_score_every_n: 10
