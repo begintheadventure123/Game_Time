@@ -23,6 +23,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
     roi_parser = subparsers.add_parser("roi", parents=[parent], help="Pick ROI")
     roi_parser.set_defaults(command="roi")
+    panel_parser = subparsers.add_parser(
+        "panel", parents=[parent], help="Floating control panel"
+    )
+    panel_parser.set_defaults(command="panel")
 
     return parser
 
@@ -35,6 +39,11 @@ def main() -> None:
         from .roi_picker import run_roi_picker
 
         run_roi_picker(args.config)
+        return
+    if args.command == "panel":
+        from .panel import run_panel
+
+        run_panel(args.config)
         return
 
     from .config import load_config

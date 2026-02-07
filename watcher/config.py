@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import yaml
 
@@ -18,6 +18,7 @@ class Matching:
     grayscale: bool
     method: str
     threshold: float
+    text_only: bool
 
 
 @dataclass
@@ -32,6 +33,12 @@ class Notify:
     use_toast: bool
     beep_fallback: bool
     title: str
+    provider: str
+    fallback_to_local: bool
+    pushover_app_token: str
+    pushover_user_key: str
+    telegram_bot_token: str
+    telegram_chat_id: str
 
 
 @dataclass
@@ -39,12 +46,17 @@ class Debug:
     enabled: bool
     show_match_box: bool
     print_score_every_n: int
+    save_enabled: bool
+    save_dir: str
+    save_every_n: int
+    save_on_match: bool
 
 
 @dataclass
 class Config:
     roi: ROI
     template_path: str
+    template_paths: List[str]
     matching: Matching
     runtime: Runtime
     notify: Notify
@@ -54,18 +66,34 @@ class Config:
 DEFAULT_CONFIG: Dict[str, Any] = {
     "roi": {"left": 100, "top": 100, "width": 400, "height": 300},
     "template_path": "assets/template.png",
+    "template_paths": ["assets/template.png"],
     "matching": {
         "grayscale": True,
         "method": "TM_CCOEFF_NORMED",
         "threshold": 0.90,
+        "text_only": False,
     },
-    "runtime": {"interval_sec": 0.30, "debounce_count": 3, "cooldown_sec": 20},
+    "runtime": {"interval_sec": 30.0, "debounce_count": 3, "cooldown_sec": 20},
     "notify": {
         "use_toast": True,
         "beep_fallback": True,
         "title": "Watcher Alert",
+        "provider": "local",
+        "fallback_to_local": True,
+        "pushover_app_token": "",
+        "pushover_user_key": "",
+        "telegram_bot_token": "",
+        "telegram_chat_id": "",
     },
-    "debug": {"enabled": False, "show_match_box": True, "print_score_every_n": 10},
+    "debug": {
+        "enabled": False,
+        "show_match_box": True,
+        "print_score_every_n": 10,
+        "save_enabled": False,
+        "save_dir": "debug_screens",
+        "save_every_n": 0,
+        "save_on_match": False,
+    },
 }
 
 
@@ -99,6 +127,22 @@ def _resolve_template_path(config_path: str, template_path: str) -> str:
         return template_path
     base_dir = os.path.dirname(os.path.abspath(config_path))
     return os.path.abspath(os.path.join(base_dir, template_path))
+
+
+def _resolve_template_paths(
+    config_path: str, template_paths: List[str]
+) -> List[str]:
+    return [
+        _resolve_template_path(config_path, template_path)
+        for template_path in template_paths
+    ]
+
+
+def _resolve_path(config_path: str, path_value: str) -> str:
+    if os.path.isabs(path_value):
+        return path_value
+    base_dir = os.path.dirname(os.path.abspath(config_path))
+    return os.path.abspath(os.path.join(base_dir, path_value))
 
 
 def load_config(
@@ -140,6 +184,7 @@ def load_config(
         grayscale=bool(matching.get("grayscale", True)),
         method=str(matching.get("method", "TM_CCOEFF_NORMED")),
         threshold=float(matching.get("threshold", 0.9)),
+        text_only=bool(matching.get("text_only", False)),
     )
 
     runtime_obj = Runtime(
@@ -152,28 +197,55 @@ def load_config(
         use_toast=bool(notify.get("use_toast", True)),
         beep_fallback=bool(notify.get("beep_fallback", True)),
         title=str(notify.get("title", "Watcher Alert")),
+        provider=str(notify.get("provider", "local")).lower(),
+        fallback_to_local=bool(notify.get("fallback_to_local", True)),
+        pushover_app_token=str(notify.get("pushover_app_token", "")),
+        pushover_user_key=str(notify.get("pushover_user_key", "")),
+        telegram_bot_token=str(notify.get("telegram_bot_token", "")),
+        telegram_chat_id=str(notify.get("telegram_chat_id", "")),
     )
 
     debug_obj = Debug(
         enabled=bool(debug.get("enabled", False)),
         show_match_box=bool(debug.get("show_match_box", True)),
         print_score_every_n=int(debug.get("print_score_every_n", 10)),
+        save_enabled=bool(debug.get("save_enabled", False)),
+        save_dir=_resolve_path(
+            path, str(debug.get("save_dir", "debug_screens"))
+        ),
+        save_every_n=int(debug.get("save_every_n", 0)),
+        save_on_match=bool(debug.get("save_on_match", False)),
     )
 
-    _validate_config(path, roi_obj, matching_obj, runtime_obj)
+    _validate_config(path, roi_obj, matching_obj, runtime_obj, notify_obj)
 
-    template_path = _resolve_template_path(
-        path, str(raw.get("template_path", "assets/template.png"))
-    )
-    if not os.path.exists(template_path):
+    raw_template_paths = raw.get("template_paths")
+    if raw_template_paths is None:
+        template_paths = [
+            str(raw.get("template_path", "assets/template.png"))
+        ]
+    else:
+        if not isinstance(raw_template_paths, list):
+            raise ValueError("template_paths must be a list of paths.")
+        template_paths = [str(path_value) for path_value in raw_template_paths]
+
+    template_paths = _resolve_template_paths(path, template_paths)
+    missing_templates = [
+        template_path
+        for template_path in template_paths
+        if not os.path.exists(template_path)
+    ]
+    if missing_templates:
+        missing = ", ".join(missing_templates)
         raise FileNotFoundError(
-            f"Template image not found: {template_path}. "
-            "Update template_path in config.yaml."
+            f"Template image(s) not found: {missing}. "
+            "Update template_paths in config.yaml."
         )
 
     return Config(
         roi=roi_obj,
-        template_path=template_path,
+        template_path=template_paths[0],
+        template_paths=template_paths,
         matching=matching_obj,
         runtime=runtime_obj,
         notify=notify_obj,
@@ -182,7 +254,7 @@ def load_config(
 
 
 def _validate_config(
-    config_path: str, roi: ROI, matching: Matching, runtime: Runtime
+    config_path: str, roi: ROI, matching: Matching, runtime: Runtime, notify: Notify
 ) -> None:
     if roi.width <= 0 or roi.height <= 0:
         raise ValueError("ROI width/height must be positive.")
@@ -198,3 +270,17 @@ def _validate_config(
         raise ValueError("runtime.cooldown_sec must be >= 0.")
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Config file not found: {config_path}")
+    if notify.provider not in ("local", "pushover", "telegram"):
+        raise ValueError(
+            "notify.provider must be one of: local, pushover, telegram."
+        )
+    if notify.provider == "pushover":
+        if not notify.pushover_app_token or not notify.pushover_user_key:
+            raise ValueError(
+                "Pushover requires notify.pushover_app_token and notify.pushover_user_key."
+            )
+    if notify.provider == "telegram":
+        if not notify.telegram_bot_token or not notify.telegram_chat_id:
+            raise ValueError(
+                "Telegram requires notify.telegram_bot_token and notify.telegram_chat_id."
+            )

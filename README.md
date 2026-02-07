@@ -72,6 +72,8 @@ Edit `config.yaml` to fine-tune:
 - `template_path`
 - `matching.threshold`
 - `runtime.interval_sec`, `runtime.debounce_count`, `runtime.cooldown_sec`
+- `notify.provider`, `notify.fallback_to_local`, `notify.pushover_app_token`, `notify.pushover_user_key`
+- `notify.telegram_bot_token`, `notify.telegram_chat_id`
 - `debug.enabled`, `debug.show_match_box`
 
 ## Troubleshooting
@@ -92,3 +94,22 @@ python -m watcher roi --help
 
 - This tool captures only the ROI on your screen.
 - Ensure this usage complies with any game’s ToS.
+
+## iPhone Notifications (Recommended)
+
+Best option: **Pushover** (reliable iOS push, low cost).
+
+1) Install the Pushover iOS app and create an account.
+2) Create an application token in Pushover.
+3) Update `config.yaml`:
+   - `notify.provider: "pushover"`
+   - `notify.pushover_app_token: "<your app token>"`
+   - `notify.pushover_user_key: "<your user key>"`
+
+Free alternative: **Telegram**.
+1) Create a Telegram bot (via @BotFather), get the bot token.
+2) Get your chat ID (send a message to the bot and read updates).
+3) Update `config.yaml`:
+   - `notify.provider: "telegram"`
+   - `notify.telegram_bot_token: "<bot token>"`
+   - `notify.telegram_chat_id: "<chat id>"`

@@ -1,27 +1,36 @@
 roi:
-  left: 100
-  top: 100
-  width: 400
-  height: 300
-
-template_path: "assets/template.png"
-
+  left: 31
+  top: 500
+  width: 874
+  height: 420
+template_path: assets/zhanchang.png
+template_paths:
+  - assets/zhanchang.png
+  - assets/zhanchang_1.png
 matching:
   grayscale: true
-  method: "TM_CCOEFF_NORMED"
-  threshold: 0.90
-
+  method: TM_CCOEFF_NORMED
+  threshold: 0.8
+  text_only: true
 runtime:
-  interval_sec: 0.30
+  interval_sec: 15.0
   debounce_count: 3
   cooldown_sec: 20
-
 notify:
   use_toast: true
   beep_fallback: true
-  title: "Watcher Alert"
-
+  title: Watcher Alert
+  provider: pushover
+  fallback_to_local: true
+  pushover_app_token: auky42mkrzqr5z6msgv8x24fmqa53q
+  pushover_user_key: udcd1ato83eomxwnr8mirrvsj5dy3b
+  telegram_bot_token: ''
+  telegram_chat_id: ''
 debug:
   enabled: false
   show_match_box: true
-  print_score_every_n: 10
+  print_score_every_n: 1
+  save_enabled: true
+  save_dir: debug_screens
+  save_every_n: 1
+  save_on_match: true
