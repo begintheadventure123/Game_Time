@@ -87,8 +87,8 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     },
     "debug": {
         "enabled": False,
-        "show_match_box": True,
-        "print_score_every_n": 10,
+        "show_match_box": False,
+        "print_score_every_n": 0,
         "save_enabled": False,
         "save_dir": "debug_screens",
         "save_every_n": 0,

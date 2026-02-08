@@ -81,11 +81,34 @@ def run_panel(config_path: str) -> None:
     root = tk.Tk()
     root.title("Watcher Panel")
     root.attributes("-topmost", True)
-    root.resizable(True, True)
-    root.geometry("220x140")
+    # Disable maximize button; resizing isn't needed for this panel.
+    root.resizable(False, False)
+    root.geometry("220x190")
 
     main = ttk.Frame(root, padding=10)
     main.pack(fill="both", expand=True)
+
+    drag_state = {"x": 0, "y": 0}
+
+    def start_drag(event: tk.Event) -> None:
+        drag_state["x"] = event.x_root - root.winfo_x()
+        drag_state["y"] = event.y_root - root.winfo_y()
+
+    def do_drag(event: tk.Event) -> None:
+        x = event.x_root - drag_state["x"]
+        y = event.y_root - drag_state["y"]
+        root.geometry(f"+{x}+{y}")
+
+    drag_area = tk.Frame(main, height=28, bg="#d9d9d9")
+    drag_area.pack(fill="x", pady=(0, 6))
+    drag_area.pack_propagate(False)
+    drag_area.configure(cursor="fleur")
+    drag_area.bind("<Button-1>", start_drag)
+    drag_area.bind("<B1-Motion>", do_drag)
+    drag_label = tk.Label(drag_area, text="拖动此处移动", bg="#d9d9d9")
+    drag_label.pack(side="left", padx=4)
+    drag_label.bind("<Button-1>", start_drag)
+    drag_label.bind("<B1-Motion>", do_drag)
 
     ttk.Label(main, text="选择监控类型").pack(anchor="w")
 

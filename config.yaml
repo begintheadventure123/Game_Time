@@ -28,9 +28,9 @@ notify:
   telegram_chat_id: ''
 debug:
   enabled: false
-  show_match_box: true
-  print_score_every_n: 1
-  save_enabled: true
+  show_match_box: false
+  print_score_every_n: 0
+  save_enabled: false
   save_dir: debug_screens
-  save_every_n: 1
-  save_on_match: true
+  save_every_n: 0
+  save_on_match: false
