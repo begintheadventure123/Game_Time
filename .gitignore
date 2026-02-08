@@ -13,4 +13,4 @@ ENV/
 .DS_Store
 .idea/
 .vscode/
-*.png
+debug_screens
