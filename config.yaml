@@ -27,10 +27,11 @@ notify:
   telegram_bot_token: ''
   telegram_chat_id: ''
 debug:
-  enabled: false
+  enabled: true
+  show_window: false
   show_match_box: false
-  print_score_every_n: 0
-  save_enabled: false
+  print_score_every_n: 1
+  save_enabled: true
   save_dir: debug_screens
-  save_every_n: 0
-  save_on_match: false
+  save_every_n: 1
+  save_on_match: true

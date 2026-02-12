@@ -103,7 +103,7 @@ def run_watcher(config: Config, stop_event: Optional[Event] = None) -> None:
                         f"[watcher] score={best_score:.4f} streak={hit_streak}"
                     )
 
-            if config.debug.enabled:
+            if config.debug.enabled and config.debug.show_window:
                 display = frame.copy()
                 if config.debug.show_match_box:
                     w, h = best_matcher.template_size()
@@ -134,6 +134,6 @@ def run_watcher(config: Config, stop_event: Optional[Event] = None) -> None:
     except KeyboardInterrupt:
         print("[watcher] Stopped by Ctrl+C.")
     finally:
-        if config.debug.enabled:
+        if config.debug.enabled and config.debug.show_window:
             cv2.destroyAllWindows()
         print("[watcher] Exiting.")

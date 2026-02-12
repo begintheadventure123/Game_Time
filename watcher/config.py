@@ -44,6 +44,7 @@ class Notify:
 @dataclass
 class Debug:
     enabled: bool
+    show_window: bool
     show_match_box: bool
     print_score_every_n: int
     save_enabled: bool
@@ -87,6 +88,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     },
     "debug": {
         "enabled": False,
+        "show_window": True,
         "show_match_box": False,
         "print_score_every_n": 0,
         "save_enabled": False,
@@ -207,6 +209,7 @@ def load_config(
 
     debug_obj = Debug(
         enabled=bool(debug.get("enabled", False)),
+        show_window=bool(debug.get("show_window", True)),
         show_match_box=bool(debug.get("show_match_box", True)),
         print_score_every_n=int(debug.get("print_score_every_n", 10)),
         save_enabled=bool(debug.get("save_enabled", False)),
